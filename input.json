@@ -1,0 +1,6 @@
+{
+    "PreprocessVCF.input_vcf":"/oak/stanford/groups/smontgom/jonnguye/downsampled.173.vcf.gz",
+    "PreprocessVCF.input_vcf_index":"/oak/stanford/groups/smontgom/jonnguye/downsampled.173.vcf.gz.csi",
+    "PreprocessVCF.ancestry_labels":"/oak/stanford/groups/smontgom/jonnguye/repos/PreprocessVCF/ancestries.txt",
+    "PreprocessVCF.min_allele_count":"2"
+}
