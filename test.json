@@ -1,0 +1,6 @@
+{
+    "PreprocessVCF.input_vcf":"/Path/To/InputVCF",
+    "PreprocessVCF.input_vcf_index":"/Path/To/Input/VCFIndex",
+    "PreprocessVCF.ancestry_labels":"/Path/To/AncestriesFile",
+    "PreprocessVCF.min_allele_count":"20"
+}
