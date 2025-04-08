@@ -2,14 +2,13 @@ version 1.0
 
 workflow PreprocessVCF {
     input {
-        File vds
+        String vds_path
         File ancestry_labels
-        String min_allele_count
     }
 
     call SplitVDS {
         input:
-            vds = vds
+            vds_path = vds_path
     }    
 
 }
