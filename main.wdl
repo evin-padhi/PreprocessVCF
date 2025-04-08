@@ -26,7 +26,8 @@ task SplitVDS {
     command <<<
 set -euo pipefail
 
-python3 <<CODE "${vds_path}"
+# Write Python script to a file
+cat << 'EOF' > split_vds.py
 import hail as hl
 import sys
 
@@ -48,9 +49,11 @@ for chr, mt in mt_chromosomes.items():
     hl.export_vcf(mt, f'{chr}.vcf.bgz', tabix=True)
 
 hl.stop()
-CODE
-    >>>
+EOF
 
+# Run the Python script with the argument
+python3 split_vds.py "${vds_path}"
+>>>
 
     runtime {
         docker: docker
