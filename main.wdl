@@ -31,7 +31,9 @@ import hail as hl
 
 hl.init()
 
-vds = hl.vds.read_vds('${vds_path}')
+vds_path = os.getenv("VDS_PATH")
+vds = hl.vds.read_vds(vds_path)
+
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
 vds_chromosomes = {chr: hl.vds.filter_chromosomes(vds, keep=chr) for chr in chromosomes}
 mt_chromosomes = {chr: hl.vds.to_dense_mt(vds_chromosomes[chr]) for chr in chromosomes}
