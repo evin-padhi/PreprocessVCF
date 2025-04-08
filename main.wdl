@@ -10,8 +10,6 @@ workflow PreprocessVCF {
     call SplitVDS {
         input:
             vds = vds
-        output:
-            Array[File]
     }    
 
 }
