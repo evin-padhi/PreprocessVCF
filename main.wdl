@@ -26,15 +26,18 @@ task SplitVDS {
     command <<<
 set -euo pipefail
 
-python3 <<CODE
+python3 <<CODE "${vds_path}"
 import hail as hl
-import os
+import sys
 
 hl.init()
 
-vds_path = os.getenv("VDS_PATH")
-print(vds_path)
-print("lowercase: " + os.getenv("vds_path"))
+vds_path = sys.argv[1]
+print(f"VDS path provided: {vds_path}")
+
+if not vds_path:
+    raise ValueError("VDS path argument is empty!")
+
 vds = hl.vds.read_vds(vds_path)
 
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
@@ -46,7 +49,8 @@ for chr, mt in mt_chromosomes.items():
 
 hl.stop()
 CODE
->>>
+    >>>
+
 
     runtime {
         docker: docker
