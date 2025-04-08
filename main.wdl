@@ -2,36 +2,54 @@ version 1.0
 
 workflow PreprocessVCF {
     input {
-        File input_vcf
-        File input_vcf_index
+        File vds
         File ancestry_labels
         String min_allele_count
     }
 
-    # Define the constant array of chromosomes
-    Array[String] chromosomes = ["chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", 
-                                  "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", 
-                                  "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"]
-
-    # Scatter across chromosomes
-    scatter(chromosome in chromosomes) {
-        call ProcessChromosome {
-            input:
-                vcf_file = input_vcf,
-                vcf_file_index = input_vcf_index,
-                ancestry_labels = ancestry_labels,
-                min_allele_count = min_allele_count,
-                chromosome = chromosome
-        }
-    }
-
-    # Final step to gather results
-    call GatherResults {
+    call SplitVDS {
         input:
-            chromosome_results = ProcessChromosome.vcf_output,
-            indices = ProcessChromosome.vcf_output_index
-    }
+            vds = vds
+        output:
+            Array[File]
+    }    
+
 }
+
+task SplitVDS {
+    input {
+        String vds_path
+
+        String docker = "us.gcr.io/broad-dsp-gcr-public/terra-jupyter-hail:1.1.12"
+        Int cpu = 4
+        Int memory_gb = 15
+        Int disk_size = 150
+    }
+
+    command {
+        python -c "
+import hail as hl
+
+vds = hl.vds.read_vds($vds_path)
+chromosomes = ['chr'+str(x) for x in range(1,23)] + ['chrX','chrY']
+vds_chromosomes = {x:hl.vds.filter_chromosomes(vds,keep=x) for x in chromosomes}
+mt_chromosomes = {chr:hl.vds.to_dense_mt(single_vds_chromosome) for chr in vds_chromosomes}
+for mt in mt_chromosomes:
+    hl.export_vcf(mt_chromosomes[mt], f'{mt}.vcf.bgz')
+"
+    }
+
+    runtime {
+        docker: docker
+        memory: memory_gb + ' GB'
+        cpu: cpu
+        disk: disk_size + ' GB'
+        }
+
+    output {
+        Array[File] vcfs = glob("*.vcf.bgz")
+    }
+
 
 # Task to process each chromosome
 task ProcessChromosome {
