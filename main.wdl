@@ -2,7 +2,7 @@ version 1.0
 
 workflow PreprocessVCF {
     input {
-        File vds_path
+        String vds_path
         File ancestry_labels
     }
 
@@ -15,7 +15,7 @@ workflow PreprocessVCF {
 
 task SplitVDS {
     input {
-        File vds_path
+        String vds_path
 
         String docker = "hailgenetics/hail:0.2.134-py3.11"
         Int cpu = 4
@@ -32,7 +32,9 @@ import os
 
 hl.init()
 
-vds_path = os.getenv("vds_path")
+vds_path = os.getenv("VDS_PATH")
+print(vds_path)
+print("lowercase: " + os.getenv("vds_path"))
 vds = hl.vds.read_vds(vds_path)
 
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
