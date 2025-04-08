@@ -49,7 +49,7 @@ CODE
         docker: docker
         memory: memory_gb + ' GB'
         cpu: cpu
-        disk: "local-disk ~{disk_space} HDD"
+        disk: "local-disk ~{disk_size} HDD"
         }
 
     output {
