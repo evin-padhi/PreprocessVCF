@@ -28,6 +28,7 @@ set -euo pipefail
 
 python3 <<CODE
 import hail as hl
+import os
 
 hl.init()
 
