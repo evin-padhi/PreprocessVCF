@@ -17,7 +17,7 @@ task SplitVDS {
     input {
         String vds_path
 
-        String docker = "us.gcr.io/broad-dsp-gcr-public/terra-jupyter-hail:1.1.12"
+        String docker = "us.gcr.io/broad-dsp-gcr-public/hail:0.2.128"
         Int cpu = 4
         Int memory_gb = 15
         Int disk_size = 150
@@ -49,7 +49,7 @@ CODE
         docker: docker
         memory: memory_gb + ' GB'
         cpu: cpu
-        disk: disk_size + ' GB'
+        disk: disk_size
         }
 
     output {
