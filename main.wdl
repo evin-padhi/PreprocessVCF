@@ -32,7 +32,7 @@ import os
 
 hl.init()
 
-vds_path = os.getenv("VDS_PATH")
+vds_path = os.getenv("vds_path")
 vds = hl.vds.read_vds(vds_path)
 
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
