@@ -33,7 +33,7 @@ import sys
 import re
 
 def make_dense_mt(vds: hl.vds.VariantDataset, is_filtering_FT: bool, is_keep_as_vqsr_fields: bool,
-                  max_alt_alleles: Optional[int], fields_to_drop: str) -> hl.MatrixTable:
+                  max_alt_alleles: int, fields_to_drop: str) -> hl.MatrixTable:
     """
     Convert a Variant Dataset (VDS) to a densified MatrixTable (MT) with additional annotations, and drop some
     fields if fields exist in the VDS.
@@ -117,7 +117,8 @@ vds = hl.vds.read_vds(vds_path)
 
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
 vds_chromosomes = {chr: hl.vds.filter_chromosomes(vds, keep=chr) for chr in chromosomes}
-mt_chromosomes = {chr: make_dense_mt(vds_chromosomes[chr]) for chr in chromosomes}
+mt_chromosomes = {chr: make_dense_mt(vds_chromosomes[chr], True, False, 100,
+    "as_vqsr,LAD,LGT,LA,tranche_data,truth_sensitivity_snp_threshold,truth_sensitivity_indel_threshold,snp_vqslod_threshold,indel_vqslod_threshold") for chr in chromosomes}
 
 for chr, mt in mt_chromosomes.items():
     hl.export_vcf(mt, f'{chr}.vcf.bgz', tabix=True)
