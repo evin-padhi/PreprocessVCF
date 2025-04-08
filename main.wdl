@@ -84,7 +84,7 @@ task ProcessChromosome {
         docker: docker
         memory: memory_gb + ' GB'
         cpu: cpu
-        disk: disk_size + ' GB'
+        disks: 'local-disk' + disk_size + ' GB'
     }
     
     output {
