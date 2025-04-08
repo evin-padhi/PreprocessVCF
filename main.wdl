@@ -27,7 +27,7 @@ task SplitVDS {
     }
 
     command {
-        python -c "
+        python -c <<<
 import hail as hl
 
 vds = hl.vds.read_vds('${vds_path}')
@@ -36,7 +36,7 @@ vds_chromosomes = {x: hl.vds.filter_chromosomes(vds, keep=x) for x in chromosome
 mt_chromosomes = {chr: hl.vds.to_dense_mt(vds_chromosomes[chr]) for chr in vds_chromosomes}
 for mt in mt_chromosomes:
     hl.export_vcf(mt_chromosomes[mt], f'{mt}.vcf.bgz')
-"
+>>>
     }
 
     runtime {
