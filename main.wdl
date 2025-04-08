@@ -24,18 +24,25 @@ task SplitVDS {
         Int disk_size = 150
     }
 
-    command {
-        python -c <<<
+    command <<<
+set -euo pipefail
+
+python <<CODE
 import hail as hl
+
+hl.init()
 
 vds = hl.vds.read_vds('${vds_path}')
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
-vds_chromosomes = {x: hl.vds.filter_chromosomes(vds, keep=x) for x in chromosomes}
-mt_chromosomes = {chr: hl.vds.to_dense_mt(vds_chromosomes[chr]) for chr in vds_chromosomes}
-for mt in mt_chromosomes:
-    hl.export_vcf(mt_chromosomes[mt], f'{mt}.vcf.bgz')
+vds_chromosomes = {chr: hl.vds.filter_chromosomes(vds, keep=chr) for chr in chromosomes}
+mt_chromosomes = {chr: hl.vds.to_dense_mt(vds_chromosomes[chr]) for chr in chromosomes}
+
+for chr, mt in mt_chromosomes.items():
+    hl.export_vcf(mt, f'{chr}.vcf.bgz', tabix=True)
+
+hl.stop()
+CODE
 >>>
-    }
 
     runtime {
         docker: docker
