@@ -30,7 +30,7 @@ task SplitVDS {
         python -c "
 import hail as hl
 
-vds = hl.vds.read_vds($vds_path)
+vds = hl.vds.read_vds('${vds_path}')
 chromosomes = ['chr'+str(x) for x in range(1,23)] + ['chrX','chrY']
 vds_chromosomes = {x:hl.vds.filter_chromosomes(vds,keep=x) for x in chromosomes}
 mt_chromosomes = {chr:hl.vds.to_dense_mt(single_vds_chromosome) for chr in vds_chromosomes}
