@@ -17,7 +17,7 @@ task SplitVDS {
     input {
         String vds_path
 
-        String docker = "us.gcr.io/broad-dsp-gcr-public/hail:0.2.128"
+        String docker = "hailgenetics/hail:0.2.134-py3.11"
         Int cpu = 4
         Int memory_gb = 15
         Int disk_size = 150
