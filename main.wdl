@@ -26,7 +26,7 @@ task SplitVDS {
     command <<<
 set -euo pipefail
 
-python <<CODE
+python3 <<CODE
 import hail as hl
 
 hl.init()
