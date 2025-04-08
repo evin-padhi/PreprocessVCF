@@ -2,7 +2,7 @@ version 1.0
 
 workflow PreprocessVCF {
     input {
-        String vds_path
+        File vds_path
         File ancestry_labels
     }
 
@@ -15,7 +15,7 @@ workflow PreprocessVCF {
 
 task SplitVDS {
     input {
-        String vds_path
+        File vds_path
 
         String docker = "hailgenetics/hail:0.2.134-py3.11"
         Int cpu = 4
