@@ -54,6 +54,7 @@ CODE
     output {
         Array[File] vcfs = glob("*.vcf.bgz")
     }
+}
 
 
 # Task to process each chromosome
