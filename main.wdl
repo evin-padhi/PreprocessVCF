@@ -119,7 +119,7 @@ if not vds_path:
 samples_to_query = hl.import_table(tsv_samples, key = "research_id") 
 
 vds = hl.vds.read_vds(vds_path)
-vds = hl.vds.filter_samples(vds,samples_to_query,key="research_id")
+vds = hl.vds.filter_samples(vds,samples_to_query,keep=True,remove_dead_alleles=True)
 
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
 vds_chromosomes = {chr: hl.vds.filter_chromosomes(vds, keep=chr) for chr in chromosomes}
