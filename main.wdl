@@ -112,7 +112,7 @@ hl.init()
 vds_path = sys.argv[1]
 tsv_samples = sys.argv[2]
 print(f"VDS path provided: {vds_path}")
-print(f"TSV Samples path: {tsv_samples})
+print(f"TSV Samples path: {tsv_samples}")
 if not vds_path:
     raise ValueError("VDS path argument is empty!")
 
