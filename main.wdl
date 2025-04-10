@@ -3,12 +3,13 @@ version 1.0
 workflow PreprocessVCF {
     input {
         String vds_path
-        File ancestry_labels
+        String tsv_sample_path
     }
 
     call SplitVDS {
         input:
-            vds_path = vds_path
+            vds_path = vds_path,
+            tsv_sample_path = tsv_sample_path
     }    
 
 }
@@ -16,6 +17,7 @@ workflow PreprocessVCF {
 task SplitVDS {
     input {
         String vds_path
+        String tsv_sample_path
 
         String docker = "hailgenetics/hail:0.2.134-py3.11"
         Int cpu = 4
@@ -108,12 +110,16 @@ def split_mt(mt):
 hl.init()
 
 vds_path = sys.argv[1]
+tsv_samples = sys.argv[2]
 print(f"VDS path provided: {vds_path}")
-
+print(f"TSV Samples path: {tsv_samples})
 if not vds_path:
     raise ValueError("VDS path argument is empty!")
 
+samples_to_query = hl.import_table(tsv_samples, key = "research_id") 
+
 vds = hl.vds.read_vds(vds_path)
+vds = hl.vds.filter_samples(vds,samples_to_query,key="research_id")
 
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
 vds_chromosomes = {chr: hl.vds.filter_chromosomes(vds, keep=chr) for chr in chromosomes}
