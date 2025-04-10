@@ -133,7 +133,7 @@ hl.stop()
 EOF
 
 # Run the Python script with the argument
-python3 split_vds.py "~{vds_path}"
+python3 split_vds.py "~{vds_path}" "~{tsv_sample_path}"
 >>>
 
     runtime {
