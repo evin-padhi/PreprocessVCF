@@ -44,6 +44,7 @@ task ConvertVdsToDenseMt {
     }
 
     command {
+        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/ConvertVDSToDenseMT.py
         python3 ConvertVDSToDenseMT.py ~{vds_url} ~{rnaseq_samples_tsv} ~{output_bucket} ~{identifier}
     }
 
@@ -67,6 +68,7 @@ task SplitMultiAllelic {
     }
 
     command {
+        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/SplitMultiAllelic.py
         python3 SplitMultiAllelic.py ~{input_mt_path} ~{output_bucket} ~{identifier}
     }
 
@@ -90,6 +92,7 @@ task ExportVcf {
     }
 
     command {
+        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/ExportVCF.py
         python3 ExportVCF.py ~{input_mt_path} ~{output_bucket} ~{identifier}
     }
 
