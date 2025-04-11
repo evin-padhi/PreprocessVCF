@@ -46,7 +46,7 @@ task ConvertVdsToDenseMt {
         Int memory = 512
         Int cpu = 64
         Int disk_size = 500
-        string disk_type = SSD
+        String disk_type = "SSD"
     }
 
     command {
@@ -76,7 +76,7 @@ task SplitMultiAllelic {
         Int memory = 512
         Int cpu = 64
         Int disk_size = 500
-        string disk_type = SSD
+        String disk_type = "SSD"
     }
 
     command {
@@ -106,7 +106,7 @@ task ExportVcf {
         Int memory = 256
         Int cpu = 32
         Int disk_size = 500
-        string disk_type = SSD
+        String disk_type = "SSD"
     }
 
     command {
