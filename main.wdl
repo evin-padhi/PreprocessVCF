@@ -1,235 +1,106 @@
 version 1.0
 
-workflow PreprocessVCF {
+workflow VDS_to_VCF_pipeline {
     input {
-        String vds_path
-        String tsv_sample_path
+        String vds_url
+        String rnaseq_samples_tsv
+        String identifier
+        String output_bucket
     }
 
-    call SplitVDS {
+    call ConvertVdsToDenseMt {
         input:
-            vds_path = vds_path,
-            tsv_sample_path = tsv_sample_path
-    }    
-
-}
-
-task SplitVDS {
-    input {
-        String vds_path
-        String tsv_sample_path
-
-        String docker = "quay.io/jonnguye/hail"
-        Int cpu = 4
-        Int memory_gb = 15
-        Int disk_size = 150
+            vds_url = vds_url,
+            rnaseq_samples_tsv = rnaseq_samples_tsv,
+            identifier = identifier,
+            output_bucket = output_bucket,
     }
 
-    command <<<
-set -euo pipefail
+    call SplitMultiAllelic {
+        input:
+            input_mt_path = ConvertVdsToDenseMt.output_mt_path,
+            identifier = identifier,
+            output_bucket = output_bucket
+    }
 
-# Write Python script to a file
-cat << 'EOF' > split_vds.py
-import hail as hl
-import sys
-import re
-
-def make_dense_mt(vds: hl.vds.VariantDataset, is_filtering_FT: bool, is_keep_as_vqsr_fields: bool,
-                  max_alt_alleles: int, fields_to_drop: str) -> hl.MatrixTable:
-    """
-    Convert a Variant Dataset (VDS) to a densified MatrixTable (MT) with additional annotations, and drop some
-    fields if fields exist in the VDS.
-
-    Parameters:
-    vds (hl.vds.VariantDataset): The input Variant Dataset.
-    is_filtering_FT (bool): Flag to filter GTs based on the FT field. If "FT" is "Fail", then set
-                        corresponding "GT" to missing.
-    is_keep_as_vqsr_fields (bool): Flag to keep VQSR fields.
-    max_alt_alleles (Optional[int]): Maximum number of alternate alleles for filtering.
-    fields_to_drop (str): Specific fields to drop from the VDS while converting to a dense MT, e.g., "as_vqsr, LAD, tranche_data,
-                          truth_sensitivity_snp_threshold, truth_sensitivity_indel_threshold,
-                          snp_vqslod_threshold, indel_vqslod_threshold", delimiter can be , _ or space.
-
-    Returns:
-    hl.MatrixTable: The resulting densified and annotated MatrixTable.
-    """
-
-    #vd_gt = to_dense_mt(vds)
-    vd_gt = vds.variant_data
-
-    if max_alt_alleles is not None:
-        vd_gt = vd_gt.filter_rows(hl.len(vd_gt.alleles) < max_alt_alleles)
-
-    vd_gt = vd_gt.annotate_entries(AD=hl.vds.local_to_global(vd_gt.LAD, vd_gt.LA, n_alleles=hl.len(vd_gt.alleles), fill_value=0, number='R'))
-    vd_gt = vd_gt.transmute_entries(GT=hl.vds.lgt_to_gt(vd_gt.LGT, vd_gt.LA))
-
-    if 'FT' in vd_gt.entry:
-        vd_gt = vd_gt.transmute_entries(FT=hl.if_else(vd_gt.FT, "PASS", "FAIL"))
-
-    if 'gvcf_info' in vd_gt.entry:
-        vd_gt = vd_gt.drop('gvcf_info')
-
-    d_callset = hl.vds.to_dense_mt(hl.vds.VariantDataset(vds.reference_data, vd_gt))
-    #d_callset = vd_gt
-    if is_filtering_FT and "FT" in d_callset.entry:
-        d_callset = d_callset.annotate_entries(GT=hl.or_missing((~hl.is_defined(d_callset.FT)) | (d_callset.FT.contains("PASS")), d_callset.GT))
-
-    d_callset = hl.variant_qc(d_callset)
-    d_callset = d_callset.annotate_rows(info=hl.struct(AC=d_callset.variant_qc.AC[1:], AF=d_callset.variant_qc.AF[1:], AN=d_callset.variant_qc.AN, homozygote_count=d_callset.variant_qc.homozygote_count))
-
-    if is_keep_as_vqsr_fields and ('as_vqsr' in d_callset.row):
-        d_callset = d_callset.annotate_rows(info=d_callset.info.annotate(AS_VQSLOD=d_callset.as_vqsr.values().vqslod, AS_YNG=d_callset.as_vqsr.values().yng_status))
-
-    d_callset = d_callset.annotate_rows(variant_qc=d_callset.variant_qc.drop("AC", "AF", "AN", "homozygote_count"))
-    fields_to_drop_list = re.split(r'[,\s]+', fields_to_drop)
-    d_callset = d_callset.drop(*(f for f in fields_to_drop_list if f in d_callset.entry or f in d_callset.row or f in d_callset.col or f in d_callset.globals))
-
-    return d_callset
-
-def calculate_info(mt):
-    mt = mt.drop("variant_qc", "info")
-    mt = hl.variant_qc(mt)
-
-    mt = mt.annotate_rows(info = hl.struct(AC=mt.variant_qc.AC[1:],
-                                       AF=mt.variant_qc.AF[1:],
-                                       AN=mt.variant_qc.AN,
-                                       homozygote_count=mt.variant_qc.homozygote_count))
-    
-    # Drop duplicate nested fields that are already in INFO field rendered by call_stats()
-   # mt = mt.annotate_rows(variant_qc = mt.variant_qc.drop("AC", "AF", "AN", "homozygote_count"))
-    return mt
-EA
-def split_mt(mt):
-    # Filter rows that have a non-missing value.  
-    #  Note that this will have an issue w/ "PASS"
-    mt = mt.filter_rows(hl.is_missing(mt.filters) | (hl.len(mt['filters']) == 0), keep=True)
-    split = hl.split_multi_hts(mt)
-    split = calculate_info(split)
-    return split
-
-hl.init()
-
-vds_path = sys.argv[1]
-tsv_samples = sys.argv[2]
-print(f"VDS path provided: {vds_path}")
-print(f"TSV Samples path: {tsv_samples}")
-if not vds_path:
-    raise ValueError("VDS path argument is empty!")
-
-samples_to_query = hl.import_table(tsv_samples, key = "research_id") 
-
-print("VDS LOADING: START")
-vds = hl.vds.read_vds(vds_path)
-print("VDS LOADING: DONE")
-print("VDS FILTER BY SAMPLE: START")
-vds = hl.vds.filter_samples(vds,samples_to_query,keep=True,remove_dead_alleles=True)
-print("VDS FILTER BY SAMPME: END")
-
-chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
-
-print("VDS SPLIT BY CHROM: START")
-vds_chromosomes = {chr: hl.vds.filter_chromosomes(vds, keep=chr) for chr in chromosomes}
-mt_chromosomes = {chr: make_dense_mt(vds_chromosomes[chr], True, False, 100,
-    "as_vqsr,LAD,LGT,LA,tranche_data,truth_sensitivity_snp_threshold,truth_sensitivity_indel_threshold,snp_vqslod_threshold,indel_vqslod_threshold") for chr in chromosomes}
-print("SPLIT BY CHROM: END")
-
-print("EXPORT TO VCF: START")
-for chr, mt in mt_chromosomes.items():
-    hl.export_vcf(mt, f'{chr}.vcf.bgz', tabix=True)
-print("EXPORT TO VCF: END")
-
-hl.stop()
-EOF
-
-# Run the Python script with the argument
-python3 split_vds.py "~{vds_path}" "~{tsv_sample_path}"
->>>
-
-    runtime {
-        docker: docker
-        memory: memory_gb + ' GB'
-        cpu: cpu
-        disk: "local-disk ~{disk_size} HDD"
-        }
+    call ExportVcf {
+        input:
+            input_mt_path = SplitMultiAllelic.split_mt_path,
+            identifier = identifier,
+            output_bucket = output_bucket
+    }
 
     output {
-        Array[File] vcfs = glob("*.vcf.bgz")
+        File final_vcf_bgz = ExportVcf.output_vcf_bgz
     }
 }
 
-
-# Task to process each chromosome
-task ProcessChromosome {
+task ConvertVdsToDenseMt {
     input {
-        File vcf_file
-        File vcf_file_index
-        File ancestry_labels
-        String min_allele_count
-        String chromosome
-
-        String docker = "quay.io/biocontainers/bcftools:1.21--h3a4d415_1"
-        Int cpu = 1
-        Int memory_gb = ceil(size(vcf_file, "GB") + 8)
-        Int disk_size = ceil(size(vcf_file, "GB") + 20)
+        String vds_url
+        String rnaseq_samples_tsv
+        String output_bucket
+        String identifier
     }
 
     command {
-        # Use bcftools to filter the VCF for the specific chromosome
-        bcftools view -r ${chromosome} ${vcf_file} -Ou \
-        | bcftools norm -m + - \
-        | bcftools view -m2 -M2 -c${min_allele_count} - \
-        | bcftools +fill-tags -  -- -t AN,AC,AF,MAF,AC_hom,AC_het,HWE,F_MISSING -S ${ancestry_labels} \
-        | bcftools view -e "F_MISSING > 0.05" -W -Oz -o ${chromosome}.filtered.vcf.gz
+        python3 ConvertVDSToDenseMT.py ~{vds_url} ~{rnaseq_samples_tsv} ~{output_bucket} ~{identifier}
     }
-    
+
     runtime {
-        docker: docker
-        memory: memory_gb + ' GB'
-        cpu: cpu
-        disks: disk_size + ' GB'
+        docker: "quay.io/jonnguye/hail"
+        memory: "256G"
+        cpu: 64
+        disks: "local-disk 500 SSD"
     }
-    
+
     output {
-        File vcf_output = "${chromosome}.filtered.vcf.gz"
-        File vcf_output_index = "${chromosome}.filtered.vcf.gz.csi"
+        String output_mt_path = "~{output_bucket}/~{identifier}.mt"
     }
 }
 
-# Task to gather results (optional, depending on your needs)
-task GatherResults {
+task SplitMultiAllelic {
     input {
-        Array[File] chromosome_results
-        Array[File] indices
-
-        String docker = "quay.io/biocontainers/bcftools:1.21--h3a4d415_1"
-        Int cpu = 4
-        Int memory_gb = 64
-        Int disk_size = ceil(size(chromosome_results, "GB") + 20)
+        String input_mt_path
+        String output_bucket
+        String identifier
     }
 
     command {
-        # Combine the filtered VCFs into one file (optional)
-        bcftools concat --threads ~{cpu - 1} -Oz -o combined.vcf.gz ~{sep=' ' chromosome_results}
+        python3 SplitMultiAllelic.py ~{input_mt_path} ~{output_bucket} ~{identifier}
     }
-    
+
     runtime {
-        docker: docker
-        memory: memory_gb + ' GB'
-        cpu: cpu
-        disk: disk_size + ' GB'
+        docker: "quay.io/jonnguye/hail"
+        memory: "256G"
+        cpu: 64
+        disks: "local-disk 500 SSD"
     }
-    
+
     output {
-        File combined_vcf = "combined.vcf.gz"
+        String split_mt_path = "~{output_bucket}/~{identifier}_split.mt"
     }
 }
 
+task ExportVcf {
+    input {
+        String input_mt_path
+        String output_bucket
+        String identifier
+    }
 
+    command {
+        python3 ExportVCF.py ~{input_mt_path} ~{output_bucket} ~{identifier}
+    }
 
+    runtime {
+        docker: "quay.io/jonnguye/hail"
+        memory: "128G"
+        cpu: 32
+        disks: "local-disk 500 SSD"
+    }
 
-
-
-
-
-
-
+    output {
+        File output_vcf_bgz = "~{output_bucket}/~{identifier}.vcf.bgz"
+    }
+}
