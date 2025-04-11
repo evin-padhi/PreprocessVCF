@@ -17,6 +17,8 @@ def make_dense_mt(vds, filter_FT, keep_as_vqsr, max_alt, fields_drop):
     d_callset = hl.variant_qc(d_callset)
     d_callset = d_callset.annotate_rows(info=hl.struct(AC=d_callset.variant_qc.AC[1:], AF=d_callset.variant_qc.AF[1:], AN=d_callset.variant_qc.AN, homozygote_count=d_callset.variant_qc.homozygote_count))
     fields_drop_list = fields_drop.replace(",", " ").split()
+    mt_cols = list(d_callset.col_value)
+    fields_drop_list = [x for x in fields_drop_list if x in mt_cols]
     d_callset = d_callset.drop(*fields_drop_list)
     return d_callset
 
