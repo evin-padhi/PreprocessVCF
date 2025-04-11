@@ -28,7 +28,33 @@ rnaseq_samples_tsv = sys.argv[2]
 output_bucket = sys.argv[3]
 identifier = sys.argv[4]
 
-hl.init(default_reference='GRCh38')
+hl.init(spark_conf={
+    # Driver settings
+    'spark.driver.memory': '32g',
+    'spark.driver.cores': '4',
+
+    # Executor settings
+    'spark.executor.memory': '20g',
+    'spark.executor.cores': '5',
+    'spark.executor.instances': '11',
+
+    # Memory management
+    'spark.memory.fraction': '0.6',
+    'spark.memory.storageFraction': '0.2',
+
+    # Parallelism and shuffle settings
+    'spark.default.parallelism': '320',
+    'spark.sql.shuffle.partitions': '320',
+
+    # JVM settings
+    'spark.executor.extraJavaOptions': '-XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=35',
+    'spark.driver.extraJavaOptions': '-XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=35',
+
+    # Network and timeout settings (optional but recommended)
+    'spark.network.timeout': '800s',
+    'spark.executor.heartbeatInterval': '60s'
+})
+
 vds = hl.vds.read_vds(vds_url)
 fields_to_drop = "as_vqsr,LAD,LGT,LA,tranche_data,truth_sensitivity_snp_threshold,truth_sensitivity_indel_threshold,snp_vqslod_threshold,indel_vqslod_threshold"
 samples = hl.import_table(rnaseq_samples_tsv, key="research_id")

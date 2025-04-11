@@ -43,7 +43,7 @@ task ConvertVdsToDenseMt {
         String identifier
 
         String docker = "quay.io/jonnguye/hail:latest"
-        Int memory = 512
+        Int memory = 256
         Int cpu = 64
         Int disk_size = 500
         String disk_type = "SSD"
@@ -73,7 +73,7 @@ task SplitMultiAllelic {
         String identifier
 
         String docker = "quay.io/jonnguye/hail:latest"
-        Int memory = 512
+        Int memory = 256
         Int cpu = 64
         Int disk_size = 500
         String disk_type = "SSD"
@@ -104,7 +104,7 @@ task ExportVcf {
         
         String docker = "quay.io/jonnguye/hail:latest"
         Int memory = 256
-        Int cpu = 32
+        Int cpu = 64
         Int disk_size = 500
         String disk_type = "SSD"
     }
