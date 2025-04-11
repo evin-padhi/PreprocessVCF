@@ -55,9 +55,9 @@ task ConvertVdsToDenseMt {
     }
 
     runtime {
-        docker: ~{docker}
+        docker: "~{docker}"
         memory: "~{memory} GB"
-        cpu: ~{cpu}
+        cpu: "~{cpu}"
         disks: "local-disk ~{disk_size} ~{disk_type}"
     }
 
@@ -85,9 +85,9 @@ task SplitMultiAllelic {
     }
 
     runtime {
-        docker: ~{docker}
+        docker: "~{docker}"
         memory: "~{memory} GB"
-        cpu: ~{cpu}
+        cpu: "~{cpu}"
         disks: "local-disk ~{disk_size} ~{disk_type}"
     }
 
@@ -115,9 +115,9 @@ task ExportVcf {
     }
 
     runtime {
-        docker: ~{docker}
+        docker: "~{docker}"
         memory: "~{memory} GB"
-        cpu: ~{cpu}
+        cpu: "~{cpu}"
         disks: "local-disk ~{disk_size} ~{disk_type}"
     }
 
