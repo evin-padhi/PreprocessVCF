@@ -49,7 +49,7 @@ task ConvertVdsToDenseMt {
     }
 
     runtime {
-        docker: "quay.io/jonnguye/hail"
+        docker: "quay.io/jonnguye/hail:latest"
         memory: "256G"
         cpu: 64
         disks: "local-disk 500 SSD"
@@ -73,7 +73,7 @@ task SplitMultiAllelic {
     }
 
     runtime {
-        docker: "quay.io/jonnguye/hail"
+        docker: "quay.io/jonnguye/hail:latest"
         memory: "256G"
         cpu: 64
         disks: "local-disk 500 SSD"
@@ -97,7 +97,7 @@ task ExportVcf {
     }
 
     runtime {
-        docker: "quay.io/jonnguye/hail"
+        docker: "quay.io/jonnguye/hail:latest"
         memory: "128G"
         cpu: 32
         disks: "local-disk 500 SSD"
