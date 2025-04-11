@@ -19,7 +19,7 @@ task SplitVDS {
         String vds_path
         String tsv_sample_path
 
-        String docker = "hailgenetics/hail:0.2.134-py3.11"
+        String docker = "quay.io/jonnguye/hail"
         Int cpu = 4
         Int memory_gb = 15
         Int disk_size = 150
@@ -98,7 +98,7 @@ def calculate_info(mt):
     # Drop duplicate nested fields that are already in INFO field rendered by call_stats()
    # mt = mt.annotate_rows(variant_qc = mt.variant_qc.drop("AC", "AF", "AN", "homozygote_count"))
     return mt
-
+EA
 def split_mt(mt):
     # Filter rows that have a non-missing value.  
     #  Note that this will have an issue w/ "PASS"
@@ -118,16 +118,25 @@ if not vds_path:
 
 samples_to_query = hl.import_table(tsv_samples, key = "research_id") 
 
+print("VDS LOADING: START")
 vds = hl.vds.read_vds(vds_path)
+print("VDS LOADING: DONE")
+print("VDS FILTER BY SAMPLE: START")
 vds = hl.vds.filter_samples(vds,samples_to_query,keep=True,remove_dead_alleles=True)
+print("VDS FILTER BY SAMPME: END")
 
 chromosomes = ['chr' + str(x) for x in range(1, 23)] + ['chrX', 'chrY']
+
+print("VDS SPLIT BY CHROM: START")
 vds_chromosomes = {chr: hl.vds.filter_chromosomes(vds, keep=chr) for chr in chromosomes}
 mt_chromosomes = {chr: make_dense_mt(vds_chromosomes[chr], True, False, 100,
     "as_vqsr,LAD,LGT,LA,tranche_data,truth_sensitivity_snp_threshold,truth_sensitivity_indel_threshold,snp_vqslod_threshold,indel_vqslod_threshold") for chr in chromosomes}
+print("SPLIT BY CHROM: END")
 
+print("EXPORT TO VCF: START")
 for chr, mt in mt_chromosomes.items():
     hl.export_vcf(mt, f'{chr}.vcf.bgz', tabix=True)
+print("EXPORT TO VCF: END")
 
 hl.stop()
 EOF
