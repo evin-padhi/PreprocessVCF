@@ -27,9 +27,9 @@ output_bucket = sys.argv[3]
 identifier = sys.argv[4]
 
 hl.init(default_reference='GRCh38')
-vds = hl.vds.read_vds("${vds_url}")
+vds = hl.vds.read_vds(vds_url)
 fields_to_drop = "as_vqsr,LAD,LGT,LA,tranche_data,truth_sensitivity_snp_threshold,truth_sensitivity_indel_threshold,snp_vqslod_threshold,indel_vqslod_threshold"
-samples = hl.import_table("${rnaseq_samples_tsv}", key="research_id")
+samples = hl.import_table(rnaseq_samples_tsv, key="research_id")
 vds_subset = hl.vds.filter_samples(vds, samples, keep=True, remove_dead_alleles=True)
 mt = make_dense_mt(vds_subset, True, False, 100, fields_to_drop)
-mt.write("${output_bucket}/${identifier}.mt", overwrite=True)
+mt.write(f"{output_bucket}/{identifier}.mt", overwrite=True)
