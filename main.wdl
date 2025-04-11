@@ -41,6 +41,12 @@ task ConvertVdsToDenseMt {
         String rnaseq_samples_tsv
         String output_bucket
         String identifier
+
+        String docker = "quay.io/jonnguye/hail:latest"
+        Int memory = 512
+        Int cpu = 64
+        Int disk_size = 500
+        string disk_type = SSD
     }
 
     command {
@@ -49,10 +55,10 @@ task ConvertVdsToDenseMt {
     }
 
     runtime {
-        docker: "quay.io/jonnguye/hail:latest"
-        memory: "256 GB"
-        cpu: 64
-        disks: "local-disk 500 SSD"
+        docker: ~{docker}
+        memory: "~{memory} GB"
+        cpu: ~{cpu}
+        disks: "local-disk ~{disk_size} ~{disk_type}"
     }
 
     output {
@@ -65,6 +71,12 @@ task SplitMultiAllelic {
         String input_mt_path
         String output_bucket
         String identifier
+
+        String docker = "quay.io/jonnguye/hail:latest"
+        Int memory = 512
+        Int cpu = 64
+        Int disk_size = 500
+        string disk_type = SSD
     }
 
     command {
@@ -73,10 +85,10 @@ task SplitMultiAllelic {
     }
 
     runtime {
-        docker: "quay.io/jonnguye/hail:latest"
-        memory: "256 GB"
-        cpu: 64
-        disks: "local-disk 500 SSD"
+        docker: ~{docker}
+        memory: "~{memory} GB"
+        cpu: ~{cpu}
+        disks: "local-disk ~{disk_size} ~{disk_type}"
     }
 
     output {
@@ -89,6 +101,12 @@ task ExportVcf {
         String input_mt_path
         String output_bucket
         String identifier
+        
+        String docker = "quay.io/jonnguye/hail:latest"
+        Int memory = 256
+        Int cpu = 32
+        Int disk_size = 500
+        string disk_type = SSD
     }
 
     command {
@@ -97,10 +115,10 @@ task ExportVcf {
     }
 
     runtime {
-        docker: "quay.io/jonnguye/hail:latest"
-        memory: "128 GB"
-        cpu: 32
-        disks: "local-disk 500 SSD"
+        docker: ~{docker}
+        memory: "~{memory} GB"
+        cpu: ~{cpu}
+        disks: "local-disk ~{disk_size} ~{disk_type}"
     }
 
     output {
