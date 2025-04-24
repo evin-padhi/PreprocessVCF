@@ -9,6 +9,8 @@ workflow WriteVCFWorkflow {
         String chr
         Int MinimumAC_inclusive
         String output_path
+        Int new_id_max_allele_len
+        String prefix
     }
 
     call WriteVCFTask {
