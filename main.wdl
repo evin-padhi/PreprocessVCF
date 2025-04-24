@@ -10,7 +10,7 @@ workflow WriteVCFWorkflow {
         Int MinimumAC_inclusive
         String output_path
         Int new_id_max_allele_len
-        String prefix
+        String output_prefix
     }
 
     call WriteVCFTask {
@@ -27,7 +27,7 @@ workflow WriteVCFWorkflow {
     call plink2 {
         input:
             vcf_file = WriteVCFTask.output_vcf,
-            prefix = prefix,
+            output_prefix = output_prefix,
             new_id_max_allele_len = new_id_max_allele_len
     }
 
