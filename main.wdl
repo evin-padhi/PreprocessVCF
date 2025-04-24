@@ -31,9 +31,16 @@ workflow WriteVCFWorkflow {
             new_id_max_allele_len = new_id_max_allele_len
     }
 
+    call ComputeGenotypePCS {
+        input:
+            vcf_file = WriteVCFTask.output_vcf,
+            output_prefix = output_prefix
+    }
+
     output {
         File output_vcf = WriteVCFTask.output_vcf
         Array[File] plink_outputs = plink2.plink_outputs
+        File genotype_pcs = ComputeGenotypePCS.output_tsv
     }
 }
 
@@ -106,4 +113,34 @@ task plink2 {
     output {
         Array[File] plink_outputs = glob("plink_output/*")
     }
+}
+
+task ComputeGenotypePCS {
+    input {
+        File vcf_file
+        String output_prefix
+    }
+
+    command <<<
+        set -e
+        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/compute_genotype_PCS.R
+
+        #Install packages because I'm too lazy to build an image right now
+        R -e "install.packages(c('optparse', 'tidyverse', 'data.table', 'BiocManager'), repos='https://cloud.r-project.org')"
+        R -e "BiocManager::install('SNPRelate')"
+
+        Rscript compute_genotype_PCS.R \
+            --input "~{vcf_file}" \
+            --output "~{output_prefix}"
+        >>>
+    
+        runtime {
+            docker: "rocker/r-ver:4.3.1"
+            memory: "8G"
+            cpu: 2
+        }
+    
+        output {
+            File output_tsv = "~{output_prefix}_genetic_PCs.tsv"
+        }
 }
