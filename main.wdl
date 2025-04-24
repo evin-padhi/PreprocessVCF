@@ -54,10 +54,10 @@ task WriteVCFTask {
     >>>
 
     runtime {
-        docker: "hailgenetics/hail:0.2.126" # or another appropriate hail docker image
-        memory: "416G"
+        docker: "hailgenetics/hail:0.2.126"
+        memory: "256G"
         cpu: 64
-        disks: "local-disk 150 HDD"
+        disks: "local-disk 1000 SSD"
     }
 
     output {
