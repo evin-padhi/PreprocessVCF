@@ -84,13 +84,14 @@ task plink2 {
 
     command <<<
         set -e
+
         mkdir -p plink_output
 
-        plink2 --vcf "~{vcf_file} \
+        plink2 --vcf "~{vcf_file}" \
         --make-pgen \
         --out plink_output/"~{output_prefix}" \
         --set-all-var-ids @:#\$r_\$a \
-        --new-id-max-allele-len "~{new_id_max_allele_len} \
+        --new-id-max-allele-len "~{new_id_max_allele_len}" \
         --output-chr chrM \
         --chr 1-22
     >>>
