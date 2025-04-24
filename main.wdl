@@ -57,7 +57,7 @@ task WriteVCFTask {
 
     command <<<
         set -e
-
+        apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
         curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/write_vcf.py
 
         python3 write_vcf.py \
