@@ -127,8 +127,8 @@ task ComputeGenotypePCS {
         set -e
 
         Rscript "~{genotype_rscript}" \
-            --input "~{vcf_file}" \
-            --output "~{output_prefix}"
+            --vcf_path "~{vcf_file}" \
+            --prefix "~{output_prefix}"
         >>>
     
         runtime {
