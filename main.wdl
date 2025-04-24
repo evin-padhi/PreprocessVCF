@@ -11,6 +11,7 @@ workflow WriteVCFWorkflow {
         String output_path
         Int new_id_max_allele_len
         String output_prefix
+        File genotype_rscript
     }
 
     call WriteVCFTask {
@@ -34,7 +35,8 @@ workflow WriteVCFWorkflow {
     call ComputeGenotypePCS {
         input:
             vcf_file = WriteVCFTask.output_vcf,
-            output_prefix = output_prefix
+            output_prefix = output_prefix,
+            genotype_rscript = genotype_rscript
     }
 
     output {
@@ -118,18 +120,18 @@ task ComputeGenotypePCS {
     input {
         File vcf_file
         String output_prefix
+        File genotype_rscript
     }
 
     command <<<
         set -e
-        apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/compute_genotype_PCS.R
+        #curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/compute_genotype_PCS.R
 
         #Install packages because I'm too lazy to build an image right now
         R -e "install.packages(c('optparse', 'tidyverse', 'data.table', 'BiocManager'), repos='https://cloud.r-project.org')"
         R -e "BiocManager::install('SNPRelate')"
 
-        Rscript compute_genotype_PCS.R \
+        Rscript "~{genotype_rscript}" \
             --input "~{vcf_file}" \
             --output "~{output_prefix}"
         >>>
