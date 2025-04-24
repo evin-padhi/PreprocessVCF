@@ -125,11 +125,6 @@ task ComputeGenotypePCS {
 
     command <<<
         set -e
-        #curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/compute_genotype_PCS.R
-
-        #Install packages because I'm too lazy to build an image right now
-        R -e "install.packages(c('optparse', 'tidyverse', 'data.table', 'BiocManager'), repos='https://cloud.r-project.org')"
-        R -e "BiocManager::install('SNPRelate')"
 
         Rscript "~{genotype_rscript}" \
             --input "~{vcf_file}" \
@@ -137,7 +132,7 @@ task ComputeGenotypePCS {
         >>>
     
         runtime {
-            docker: "rocker/r-ver:4.3.1"
+            docker: "quay.io/jonnguye/genotype_pcs:1.0"
             memory: "8G"
             cpu: 2
         }
