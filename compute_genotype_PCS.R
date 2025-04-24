@@ -52,8 +52,8 @@ subset_PCA_data
 
 ########## START ANALYSIS #########
 # load args from opt
-input_VCF_path <- opt$VCF
-prefix <- opt$PREFIX
+input_VCF_path <- opt$vcf_path
+prefix <- opt$prefix
 
 # get VCF with path removed. This is used to
 # to load the VCF after it is copied to the
