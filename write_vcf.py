@@ -1,0 +1,107 @@
+import hail as hl
+import argparse
+
+def write_vcf(inputs):
+    #LOAD TABLES AND FIND SUBSET
+    mt = hl.read_matrix_table(inputs['matrix_table'])
+    samples_table = hl.import_table(inputs['samples_table'], key='research_id')
+    ancestry_table = hl.import_table(inputs['ancestry_table'], key='research_id')
+    match_table = samples_table.join(ancestry_table,how="inner")
+    match_table = match_table.filter(match_table.ancestry_pred == inputs['ancestry'])
+    matches = match_table.count()
+
+    if matches == 0:
+        print("NO MATCHES FOR THIS ANCESTRY")
+    mt = mt.filter_cols(hl.is_defined(match_table[mt.s]))
+    print(f"Filtering to {mt.count_cols()} samples")
+
+    #SELECT WHICH CHROMOSOME TO FILTER BY
+
+    if inputs['chr'] is None or inputs['chr'].upper() == 'ALL':
+        print("NO CHR FILTER APPLIED")
+        print(f"CHR value provided: {inputs['chr']}")
+    else:
+        print(f"Filtering on {inputs['chr']}")
+        mt = mt.filter_rows( (mt.locus.contig == inputs['chr']) )
+
+    #REMOVE MULTIALLELIC
+    mt = mt.filter_rows(~mt.was_split)
+
+    #HAS GT
+    mt = mt.filter_rows(hl.agg.any(hl.is_defined(mt.GT)))
+
+    #ONLY CONTAINS PASS IN FT
+    #IF FT is not pass, set to 0,0
+    mt = mt.annotate_entries(GT = hl.if_else(hl.is_defined(mt.FT) & (mt.FT == "PASS"),mt.GT,hl.call(0, 0)))
+
+    #Save total pop data
+    mt = mt.annotate_rows(
+        total = mt.info.annotate(
+            ALL_AF = hl.min(mt.info.AF),
+            ALL_AN = mt.info.AN,
+            ALL_AC = hl.min(mt.info.AC),
+            ALL_p_value_hwe = mt.variant_qc.p_value_hwe,
+            ALL_p_value_excess_het = mt.variant_qc.p_value_excess_het
+        )
+    )
+    
+    #OVERWRITE TOTAL POPULATION INFO WITH SUBPOPULATION INFO
+    mt = mt.annotate_rows( info = hl.agg.call_stats(mt.GT, mt.alleles) )
+
+    #95% of alleles called in the population
+    mt = mt.filter_rows(mt.info.AN >= 0.95 * mt.count_cols() * 2)
+
+    #recalculate per subpopulation
+    mt = hl.variant_qc(mt)
+
+    #only show minor allele data
+    mt = mt.annotate_rows(
+        info = mt.info.annotate(
+            ALL_AF = mt.total.ALL_AF,
+            ALL_AC = mt.total.ALL_AC,
+            ALL_AN = mt.total.ALL_AN,
+            ALL_p_value_hwe = mt.total.ALL_p_value_hwe,
+            ALL_p_value_excess_het = mt.total.ALL_p_value_excess_het,
+            AF = hl.min(mt.info.AF),
+            AC = hl.min(mt.info.AC),
+            AN = mt.info.AN,
+            p_value_hwe = mt.variant_qc.p_value_hwe,
+            p_value_excess_het = mt.variant_qc.p_value_excess_het
+        )
+    )
+
+    #FILTER OUT MONOMORPHIC ALLELES
+    threshold = 0.001
+    mt = mt.filter_rows(mt.info.AF > threshold)
+    mt = mt.filter_rows(mt.info.AF < 1 - threshold)
+
+    #FILTER BY MIN AC
+    mt = mt.filter_rows(mt.info.AC >= inputs['MinimumAC_inclusive'])
+    
+    #mt.rows().show(n_rows=5)
+    
+    hl.export_vcf(mt, inputs['output_path'])
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--matrix_table", required=True)
+    parser.add_argument("--samples_table", required=True)
+    parser.add_argument("--ancestry_table", required=True)
+    parser.add_argument("--ancestry", required=True)
+    parser.add_argument("--chr", required=True)
+    parser.add_argument("--MinimumAC_inclusive", type=int, required=True)
+    parser.add_argument("--output_path", required=True)
+
+    args = parser.parse_args()
+
+    inputs = {
+        'matrix_table': args.matrix_table,
+        'samples_table': args.samples_table,
+        'ancestry_table': args.ancestry_table,
+        'ancestry': args.ancestry,
+        'chr': args.chr,
+        'MinimumAC_inclusive': args.MinimumAC_inclusive,
+        'output_path': args.output_path
+    }
+
+    write_vcf(inputs)
