@@ -132,7 +132,7 @@ task ComputeGenotypePCS {
         >>>
     
         runtime {
-            docker: "quay.io/jonnguye/genotype_pcs:1.0"
+            docker: "quay.io/jonnguye/genotype_pcs:latest"
             memory: "8G"
             cpu: 2
         }
