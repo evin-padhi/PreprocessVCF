@@ -1,127 +1,66 @@
 version 1.0
 
-workflow VDS_to_VCF_pipeline {
+workflow WriteVCFWorkflow {
     input {
-        String vds_url
-        String rnaseq_samples_tsv
-        String identifier
-        String output_bucket
+        String matrix_table
+        String samples_table
+        String ancestry_table
+        String ancestry
+        String chr
+        Int MinimumAC_inclusive
+        String output_path
     }
 
-    call ConvertVdsToDenseMt {
+    call WriteVCFTask {
         input:
-            vds_url = vds_url,
-            rnaseq_samples_tsv = rnaseq_samples_tsv,
-            identifier = identifier,
-            output_bucket = output_bucket,
-    }
-
-    call SplitMultiAllelic {
-        input:
-            input_mt_path = ConvertVdsToDenseMt.output_mt_path,
-            identifier = identifier,
-            output_bucket = output_bucket
-    }
-
-    call ExportVcf {
-        input:
-            input_mt_path = SplitMultiAllelic.split_mt_path,
-            identifier = identifier,
-            output_bucket = output_bucket
+            matrix_table = matrix_table,
+            samples_table = samples_table,
+            ancestry_table = ancestry_table,
+            ancestry = ancestry,
+            chr = chr,
+            MinimumAC_inclusive = MinimumAC_inclusive,
+            output_path = output_path
     }
 
     output {
-        File final_vcf_bgz = ExportVcf.output_vcf_bgz
+        File output_vcf = WriteVCFTask.output_vcf
     }
 }
 
-task ConvertVdsToDenseMt {
+task WriteVCFTask {
     input {
-        String vds_url
-        String rnaseq_samples_tsv
-        String output_bucket
-        String identifier
-
-        String docker = "quay.io/jonnguye/hail:latest"
-        Int memory = 256
-        Int cpu = 64
-        Int disk_size = 500
-        String disk_type = "SSD"
+        String matrix_table
+        String samples_table
+        String ancestry_table
+        String ancestry
+        String chr
+        Int MinimumAC_inclusive
+        String output_path
     }
 
-    command {
-        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/ConvertVDSToDenseMT.py
-        python3 ConvertVDSToDenseMT.py ~{vds_url} ~{rnaseq_samples_tsv} ~{output_bucket} ~{identifier}
-    }
+    command <<<
+        set -e
+
+        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/write_vcf.py
+
+        python3 write_vcf.py \
+            --matrix_table "~{matrix_table}" \
+            --samples_table "~{samples_table}" \
+            --ancestry_table "~{ancestry_table}" \
+            --ancestry "~{ancestry}" \
+            --chr "~{chr}" \
+            --MinimumAC_inclusive "~{MinimumAC_inclusive}" \
+            --output_path "~{output_path}"
+    >>>
 
     runtime {
-        docker: "~{docker}"
-        memory: "~{memory} GB"
-        cpu: "~{cpu}"
-        disks: "local-disk ~{disk_size} ~{disk_type}"
+        docker: "hailgenetics/hail:0.2.126" # or another appropriate hail docker image
+        memory: "416G"
+        cpu: 64
+        disks: "local-disk 150 HDD"
     }
 
     output {
-        String output_mt_path = "~{output_bucket}/~{identifier}.mt"
-    }
-}
-
-task SplitMultiAllelic {
-    input {
-        String input_mt_path
-        String output_bucket
-        String identifier
-
-        String docker = "quay.io/jonnguye/hail:latest"
-        Int memory = 256
-        Int cpu = 64
-        Int disk_size = 500
-        String disk_type = "SSD"
-    }
-
-    command {
-        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/SplitMultiAllelic.py
-        python3 SplitMultiAllelic.py ~{input_mt_path} ~{output_bucket} ~{identifier}
-    }
-
-    runtime {
-        docker: "~{docker}"
-        memory: "~{memory} GB"
-        cpu: "~{cpu}"
-        disks: "local-disk ~{disk_size} ~{disk_type}"
-    }
-
-    output {
-        String split_mt_path = "~{output_bucket}/~{identifier}_split.mt"
-    }
-}
-
-task ExportVcf {
-    input {
-        String input_mt_path
-        String output_bucket
-        String identifier
-        
-        String docker = "quay.io/jonnguye/hail:latest"
-        Int memory = 256
-        Int cpu = 64
-        Int disk_size = 500
-        String disk_type = "SSD"
-    }
-
-    command {
-        curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/ExportVCF.py
-        python3 ExportVCF.py ~{input_mt_path} ~{output_bucket} ~{identifier}
-    }
-
-    runtime {
-        docker: "~{docker}"
-        memory: "~{memory} GB"
-        cpu: "~{cpu}"
-        disks: "local-disk ~{disk_size} ~{disk_type}"
-    }
-
-    output {
-        File output_vcf_bgz = "~{output_bucket}/~{identifier}.vcf.bgz"
+        File output_vcf = "~{output_path}"
     }
 }
