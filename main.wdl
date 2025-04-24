@@ -72,7 +72,7 @@ task WriteVCFTask {
     >>>
 
     runtime {
-        docker: "hailgenetics/hail:0.2.126"
+        docker: "quay.io/jonnguye/hail:latest"
         memory: "256G"
         cpu: 64
         disks: "local-disk 1000 SSD"
