@@ -31,7 +31,7 @@ workflow WriteVCFWorkflow {
 
     output {
         File output_vcf = WriteVCFTask.output_vcf
-        Directory plink_outputs = plink2.plink_outputs
+        Array[File] plink_outputs = plink2.plink_outputs
     }
 }
 
@@ -101,6 +101,6 @@ task plink2 {
     }
 
     output {
-        Directory plink_outputs = "plink_output"
+        Array[File] plink_outputs = glob("plink_output/*")
     }
 }
