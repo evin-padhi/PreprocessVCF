@@ -24,12 +24,14 @@ def write_vcf(inputs):
     mt = hl.read_matrix_table(inputs['matrix_table'])
     samples_table = hl.import_table(inputs['samples_table'], key='research_id')
     ancestry_table = hl.import_table(inputs['ancestry_table'], key='research_id')
-    match_table = samples_table.join(ancestry_table,how="inner")
-    match_table = match_table.filter(match_table.ancestry_pred == inputs['ancestry'])
-    matches = match_table.count()
+    if inputs['ancestry'] is None or inputs['ancestry'].upper() == 'ALL':
+        print("NO ANCESTRY FILTER APPLIED")
+        print(f"ANCESTRY value provided: {inputs['ancestry']}")
+        match_table = samples_table
+    else:
+        match_table = samples_table.join(ancestry_table,how="inner")
+        match_table = match_table.filter(match_table.ancestry_pred == inputs['ancestry'])
 
-    if matches == 0:
-        print("NO MATCHES FOR THIS ANCESTRY")
     mt = mt.filter_cols(hl.is_defined(match_table[mt.s]))
     print(f"Filtering to {mt.count_cols()} samples")
 
