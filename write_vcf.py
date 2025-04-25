@@ -9,7 +9,7 @@ hl.init(
         'spark.executor.cores': '8',
         'spark.executor.memory': '30g',
         'spark.driver.memory': '32g',
-        'spark.local.dir': '/tmp',
+        'spark.local.dir': '/mnt/local-disk',
         'spark.sql.shuffle.partitions': '500',
         'spark.default.parallelism': '500',
         'spark.memory.fraction': '0.8',
