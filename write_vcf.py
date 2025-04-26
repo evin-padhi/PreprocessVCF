@@ -35,7 +35,7 @@ def write_vcf(inputs):
 
     #Checkpoint for initial filtering
     print("First Checkpoint:", flush=True)
-    mt = mt.checkpoint(f'{inputs['cloud_checkpoint_dir']}/filtered.mt', overwrite=True)
+    mt = mt.checkpoint(f"{inputs['cloud_checkpoint_dir"]}/filtered.mt', overwrite=True)
     
     #ONLY CONTAINS PASS IN FT
     #IF FT is not pass, set to 0,0
@@ -57,7 +57,7 @@ def write_vcf(inputs):
 
     #Checkpoint for qc stats
     print("Second Checkpoint:", flush=True)
-    mt = mt.checkpoint(f'{inputs['cloud_checkpoint_dir']}/qc_stats.mt', overwrite=True)
+    mt = mt.checkpoint(f"{inputs['cloud_checkpoint_dir']}/qc_stats.mt", overwrite=True)
     
     #95% of alleles called in the population
     mt = mt.filter_rows(mt.info.AN >= 0.95 * mt.count_cols() * 2)
@@ -91,7 +91,7 @@ def write_vcf(inputs):
 
     #Checkpoint for second filter
     print("Third Checkpoint:", flush=True)
-    mt = mt.checkpoint(f'{inputs['cloud_checkpoint_dir']}/second_filter.mt', overwrite=True)
+    mt = mt.checkpoint(f"{inputs['cloud_checkpoint_dir']}/second_filter.mt", overwrite=True)
     
     #mt.rows().show(n_rows=5)
     
@@ -116,7 +116,8 @@ if __name__ == "__main__":
         'ancestry': args.ancestry,
         'chr': args.chr,
         'MinimumAC_inclusive': args.MinimumAC_inclusive,
-        'output_path': args.output_path
+        'output_path': args.output_path,
+        'clouc_checkpoint_dir': args.cloud_checkpoint_dir
     }
 
     hl.init(
