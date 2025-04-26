@@ -35,7 +35,7 @@ def write_vcf(inputs):
 
     #Checkpoint for initial filtering
     print("First Checkpoint:", flush=True)
-    mt = mt.checkpoint(f"{inputs['cloud_checkpoint_dir"]}/filtered.mt', overwrite=True)
+    mt = mt.checkpoint(f"{inputs['cloud_checkpoint_dir']}/filtered.mt", overwrite=True)
     
     #ONLY CONTAINS PASS IN FT
     #IF FT is not pass, set to 0,0
