@@ -83,7 +83,7 @@ def write_vcf(inputs):
     
     #mt.rows().show(n_rows=5)
     
-    hl.export_vcf(mt, inputs['output_path'])
+    hl.export_vcf(mt, inputs['output_path'], parallel='header_per_shard', tabix=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
