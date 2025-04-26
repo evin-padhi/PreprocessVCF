@@ -60,6 +60,8 @@ task WriteVCFTask {
     command <<<
         set -e
 
+        export SPARK_LOCAL_DIRS=/cromwell_root
+
         echo "Checking disk mounts and usage:"
         df -h
         echo "Checking Spark local directory:"
