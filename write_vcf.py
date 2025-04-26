@@ -34,6 +34,7 @@ def write_vcf(inputs):
     mt = mt.filter_rows(hl.agg.any(hl.is_defined(mt.GT)))
 
     #Checkpoint for initial filtering
+    print("First Checkpoint:", flush=True)
     mt = mt.checkpoint(f'{inputs['cloud_checkpoint_dir']}/filtered.mt', overwrite=True)
     
     #ONLY CONTAINS PASS IN FT
@@ -54,7 +55,8 @@ def write_vcf(inputs):
     #OVERWRITE TOTAL POPULATION INFO WITH SUBPOPULATION INFO
     mt = mt.annotate_rows( info = hl.agg.call_stats(mt.GT, mt.alleles) )
 
-    #Checkpoint for initial filtering
+    #Checkpoint for qc stats
+    print("Second Checkpoint:", flush=True)
     mt = mt.checkpoint(f'{inputs['cloud_checkpoint_dir']}/qc_stats.mt', overwrite=True)
     
     #95% of alleles called in the population
@@ -87,7 +89,8 @@ def write_vcf(inputs):
     #FILTER BY MIN AC
     mt = mt.filter_rows(mt.info.AC >= inputs['MinimumAC_inclusive'])
 
-    #Checkpoint for initial filtering
+    #Checkpoint for second filter
+    print("Third Checkpoint:", flush=True)
     mt = mt.checkpoint(f'{inputs['cloud_checkpoint_dir']}/second_filter.mt', overwrite=True)
     
     #mt.rows().show(n_rows=5)
