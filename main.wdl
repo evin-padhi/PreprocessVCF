@@ -12,6 +12,7 @@ workflow WriteVCFWorkflow {
         Int new_id_max_allele_len
         String output_prefix
         File genotype_rscript
+        String cloud_checkpoint_dir
     }
 
     call WriteVCFTask {
@@ -22,7 +23,8 @@ workflow WriteVCFWorkflow {
             ancestry = ancestry,
             chr = chr,
             MinimumAC_inclusive = MinimumAC_inclusive,
-            output_path = output_path
+            output_path = output_path,
+            cloud_checkpoint_dir = cloud_checkpoint_dir
     }
 
     call plink2 {
@@ -55,6 +57,7 @@ task WriteVCFTask {
         String chr
         Int MinimumAC_inclusive
         String output_path
+        String cloud_checkpoint_dir
     }
 
     command <<<
@@ -78,7 +81,8 @@ task WriteVCFTask {
             --ancestry "~{ancestry}" \
             --chr "~{chr}" \
             --MinimumAC_inclusive "~{MinimumAC_inclusive}" \
-            --output_path "~{output_path}"
+            --output_path "~{output_path}" \ 
+            --cloud_checkpoint_dir "~{cloud_checkpoint_dir}"
     >>>
 
     runtime {
