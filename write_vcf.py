@@ -2,28 +2,6 @@ import hail as hl
 import argparse
 import os
 
-
-hl.init(
-    app_name='hail_job',
-    master='local[*]',
-    spark_conf={
-        'spark.executor.instances': '7',
-        'spark.executor.cores': '8',
-        'spark.executor.memory': '30g',
-        'spark.driver.memory': '32g',
-        'spark.local.dir': '/cromwell_root',
-        'spark.sql.shuffle.partitions': '500',
-        'spark.default.parallelism': '500',
-        'spark.memory.fraction': '0.8',
-        'spark.memory.storageFraction': '0.2',
-    },
-    default_reference='GRCh38'
-)
-
-print("Spark local directories:", os.getenv("SPARK_LOCAL_DIRS"))
-print("Disk usage:")
-os.system("df -h")
-
 def write_vcf(inputs):
     #LOAD TABLES AND FIND SUBSET
     mt = hl.read_matrix_table(inputs['matrix_table'])
@@ -129,4 +107,25 @@ if __name__ == "__main__":
         'output_path': args.output_path
     }
 
+    hl.init(
+        app_name='hail_job',
+        master='local[*]',
+        spark_conf={
+            'spark.executor.instances': '7',
+            'spark.executor.cores': '8',
+            'spark.executor.memory': '30g',
+            'spark.driver.memory': '32g',
+            'spark.local.dir': '/cromwell_root',
+            'spark.sql.shuffle.partitions': '500',
+            'spark.default.parallelism': '500',
+            'spark.memory.fraction': '0.8',
+            'spark.memory.storageFraction': '0.2',
+        },
+        default_reference='GRCh38'
+    )
+    
+    print("Spark local directories:", os.getenv("SPARK_LOCAL_DIRS"))
+    print("Disk usage:")
+    os.system("df -h")
+    
     write_vcf(inputs)
