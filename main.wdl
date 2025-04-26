@@ -81,7 +81,7 @@ task WriteVCFTask {
             --ancestry "~{ancestry}" \
             --chr "~{chr}" \
             --MinimumAC_inclusive "~{MinimumAC_inclusive}" \
-            --output_path "~{output_path}" \ 
+            --output_path "~{output_path}" \
             --cloud_checkpoint_dir "~{cloud_checkpoint_dir}"
     >>>
 
