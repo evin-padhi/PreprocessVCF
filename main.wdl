@@ -59,6 +59,14 @@ task WriteVCFTask {
 
     command <<<
         set -e
+
+        echo "Checking disk mounts and usage:"
+        df -h
+        echo "Checking Spark local directory:"
+        echo $SPARK_LOCAL_DIRS
+        echo "Checking /cromwell_root directory:"
+        ls -lah /cromwell_root
+
         curl -O https://raw.githubusercontent.com/jonnguye/PreprocessVCF/NotebookToWDL/write_vcf.py
 
         python3 write_vcf.py \
