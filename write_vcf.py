@@ -106,6 +106,7 @@ if __name__ == "__main__":
     parser.add_argument("--chr", required=True)
     parser.add_argument("--MinimumAC_inclusive", type=int, required=True)
     parser.add_argument("--output_path", required=True)
+    parser.add_argument("--cloud_checkpoint_dir", required=True)
 
     args = parser.parse_args()
 
@@ -117,7 +118,7 @@ if __name__ == "__main__":
         'chr': args.chr,
         'MinimumAC_inclusive': args.MinimumAC_inclusive,
         'output_path': args.output_path,
-        'clouc_checkpoint_dir': args.cloud_checkpoint_dir
+        'cloud_checkpoint_dir': args.cloud_checkpoint_dir
     }
 
     hl.init(
