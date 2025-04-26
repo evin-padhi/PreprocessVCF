@@ -124,8 +124,8 @@ if __name__ == "__main__":
         default_reference='GRCh38'
     )
     
-    print("Spark local directories:", os.getenv("SPARK_LOCAL_DIRS"))
-    print("Disk usage:")
+    print("Spark local directories:", os.getenv("SPARK_LOCAL_DIRS"), flush=True)
+    print("Disk usage:", flush=True)
     os.system("df -h")
     
     write_vcf(inputs)
