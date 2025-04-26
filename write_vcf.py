@@ -1,5 +1,7 @@
 import hail as hl
 import argparse
+import os
+
 
 hl.init(
     app_name='hail_job',
@@ -18,6 +20,9 @@ hl.init(
     default_reference='GRCh38'
 )
 
+print("Spark local directories:", os.getenv("SPARK_LOCAL_DIRS"))
+print("Disk usage:")
+os.system("df -h")
 
 def write_vcf(inputs):
     #LOAD TABLES AND FIND SUBSET
