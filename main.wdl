@@ -3,12 +3,8 @@ version 1.0
 workflow WriteVCFWorkflow {
     input {
         String matrix_table
-        String samples_table
-        #String ancestry_table
-        #String ancestry
-        #String chr
+        File samples_table
         Int MinimumAC_inclusive
-        #String output_path
         Int new_id_max_allele_len
         String output_prefix
         File genotype_rscript
@@ -48,12 +44,8 @@ workflow WriteVCFWorkflow {
 task WriteVCFTask {
     input {
         String matrix_table
-        String samples_table
-        #String ancestry_table
-        #String ancestry
-        #String chr
+        File samples_table
         Int MinimumAC_inclusive
-        #String output_path
         String output_prefix
         String cloud_checkpoint_dir
     }
