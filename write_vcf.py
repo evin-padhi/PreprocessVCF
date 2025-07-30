@@ -5,27 +5,29 @@ import os
 def write_vcf(inputs):
     #LOAD TABLES AND FIND SUBSET
     mt = hl.read_matrix_table(inputs['matrix_table'])
+    
     samples_table = hl.import_table(inputs['samples_table'], key='research_id')
-    ancestry_table = hl.import_table(inputs['ancestry_table'], key='research_id')
-    if inputs['ancestry'] is None or inputs['ancestry'].upper() == 'ALL':
-        print("NO ANCESTRY FILTER APPLIED")
-        print(f"ANCESTRY value provided: {inputs['ancestry']}")
-        match_table = samples_table
-    else:
-        match_table = samples_table.join(ancestry_table,how="inner")
-        match_table = match_table.filter(match_table.ancestry_pred == inputs['ancestry'])
+    #ancestry_table = hl.import_table(inputs['ancestry_table'], key='research_id')
+    
+    # if inputs['ancestry'] is None or inputs['ancestry'].upper() == 'COMB':
+        # print("NO ANCESTRY FILTER APPLIED")
+        # print(f"ANCESTRY value provided: {inputs['ancestry']}")
+        # match_table = samples_table
+    # else:
+        # match_table = samples_table.join(ancestry_table,how="inner")
+        # match_table = match_table.filter(match_table.ancestry_pred == inputs['ancestry'])
 
-    mt = mt.filter_cols(hl.is_defined(match_table[mt.s]))
+    mt = mt.filter_cols(hl.is_defined(samples_table[mt.s]))
     print(f"Filtering to {mt.count_cols()} samples")
 
     #SELECT WHICH CHROMOSOME TO FILTER BY
 
-    if inputs['chr'] is None or inputs['chr'].upper() == 'ALL':
-        print("NO CHR FILTER APPLIED")
-        print(f"CHR value provided: {inputs['chr']}")
-    else:
-        print(f"Filtering on {inputs['chr']}")
-        mt = mt.filter_rows( (mt.locus.contig == inputs['chr']) )
+#     if inputs['chr'] is None or inputs['chr'].upper() == 'ALL':
+        # print("NO CHR FILTER APPLIED")
+        # print(f"CHR value provided: {inputs['chr']}")
+    # else:
+        # print(f"Filtering on {inputs['chr']}")
+        # mt = mt.filter_rows( (mt.locus.contig == inputs['chr']) )
 
     #REMOVE MULTIALLELIC
     mt = mt.filter_rows(~mt.was_split)
@@ -82,9 +84,9 @@ def write_vcf(inputs):
     )
 
     #FILTER OUT MONOMORPHIC ALLELES
-    threshold = 0.001
-    mt = mt.filter_rows(mt.info.AF > threshold)
-    mt = mt.filter_rows(mt.info.AF < 1 - threshold)
+    # threshold = 0.001
+    # mt = mt.filter_rows(mt.info.AF > threshold)
+    # mt = mt.filter_rows(mt.info.AF < 1 - threshold)
 
     #FILTER BY MIN AC
     mt = mt.filter_rows(mt.info.AC >= inputs['MinimumAC_inclusive'])
@@ -101,8 +103,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--matrix_table", required=True)
     parser.add_argument("--samples_table", required=True)
-    parser.add_argument("--ancestry_table", required=True)
-    parser.add_argument("--ancestry", required=True)
+    #parser.add_argument("--ancestry_table", required=True)
+    #parser.add_argument("--ancestry", required=True)
     parser.add_argument("--chr", required=True)
     parser.add_argument("--MinimumAC_inclusive", type=int, required=True)
     parser.add_argument("--output_path", required=True)
@@ -113,8 +115,8 @@ if __name__ == "__main__":
     inputs = {
         'matrix_table': args.matrix_table,
         'samples_table': args.samples_table,
-        'ancestry_table': args.ancestry_table,
-        'ancestry': args.ancestry,
+        #'ancestry_table': args.ancestry_table,
+        #'ancestry': args.ancestry,
         'chr': args.chr,
         'MinimumAC_inclusive': args.MinimumAC_inclusive,
         'output_path': args.output_path,

@@ -4,9 +4,9 @@ workflow WriteVCFWorkflow {
     input {
         String matrix_table
         String samples_table
-        String ancestry_table
-        String ancestry
-        String chr
+        #String ancestry_table
+        #String ancestry
+        #String chr
         Int MinimumAC_inclusive
         #String output_path
         Int new_id_max_allele_len
@@ -19,11 +19,7 @@ workflow WriteVCFWorkflow {
         input:
             matrix_table = matrix_table,
             samples_table = samples_table,
-            ancestry_table = ancestry_table,
-            ancestry = ancestry,
-            chr = chr,
             MinimumAC_inclusive = MinimumAC_inclusive,
-            #output_path = output_path,
             output_prefix = output_prefix,
             cloud_checkpoint_dir = cloud_checkpoint_dir
     }
@@ -53,9 +49,9 @@ task WriteVCFTask {
     input {
         String matrix_table
         String samples_table
-        String ancestry_table
-        String ancestry
-        String chr
+        #String ancestry_table
+        #String ancestry
+        #String chr
         Int MinimumAC_inclusive
         #String output_path
         String output_prefix
@@ -79,9 +75,6 @@ task WriteVCFTask {
         python3 write_vcf.py \
             --matrix_table "~{matrix_table}" \
             --samples_table "~{samples_table}" \
-            --ancestry_table "~{ancestry_table}" \
-            --ancestry "~{ancestry}" \
-            --chr "~{chr}" \
             --MinimumAC_inclusive "~{MinimumAC_inclusive}" \
             --output_path "~{output_prefix}.vcf" \
             --cloud_checkpoint_dir "~{cloud_checkpoint_dir}"
@@ -109,12 +102,12 @@ task plink2 {
     command <<<
         set -e
 
-        mkdir -p plink_output
+       # mkdir -p plink_output
 
         plink2 --vcf "~{vcf_file}" \
         --make-pgen \
-        --out plink_output/"~{output_prefix}" \
-        --set-all-var-ids @:#\$r_\$a \
+        --out "~{output_prefix}" \
+        --set-all-var-ids @:#_\$r_\$a \
         --new-id-max-allele-len "~{new_id_max_allele_len}" \
         --output-chr chrM \
         --chr 1-22
