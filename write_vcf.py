@@ -4,8 +4,10 @@ import os
 
 def write_vcf(inputs):
     #LOAD TABLES AND FIND SUBSET
+    print('hail reading matrix table')
     mt = hl.read_matrix_table(inputs['matrix_table'])
     
+    print('Loading sample table')
     samples_table = hl.import_table(inputs['samples_table'], key='research_id')
     #ancestry_table = hl.import_table(inputs['ancestry_table'], key='research_id')
     
@@ -16,7 +18,8 @@ def write_vcf(inputs):
     # else:
         # match_table = samples_table.join(ancestry_table,how="inner")
         # match_table = match_table.filter(match_table.ancestry_pred == inputs['ancestry'])
-
+    
+    print('Filtering matrix table by sample table')
     mt = mt.filter_cols(hl.is_defined(samples_table[mt.s]))
     print(f"Filtering to {mt.count_cols()} samples")
 
@@ -30,6 +33,7 @@ def write_vcf(inputs):
         # mt = mt.filter_rows( (mt.locus.contig == inputs['chr']) )
 
     #REMOVE MULTIALLELIC
+    print('removing multi allelic sites')
     mt = mt.filter_rows(~mt.was_split)
 
     #HAS GT
