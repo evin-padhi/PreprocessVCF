@@ -8,7 +8,7 @@ workflow WriteVCFWorkflow {
         String ancestry
         String chr
         Int MinimumAC_inclusive
-        String output_path
+        #String output_path
         Int new_id_max_allele_len
         String output_prefix
         File genotype_rscript
@@ -23,7 +23,8 @@ workflow WriteVCFWorkflow {
             ancestry = ancestry,
             chr = chr,
             MinimumAC_inclusive = MinimumAC_inclusive,
-            output_path = output_path,
+            #output_path = output_path,
+            output_prefix = output_prefix,
             cloud_checkpoint_dir = cloud_checkpoint_dir
     }
 
@@ -56,7 +57,8 @@ task WriteVCFTask {
         String ancestry
         String chr
         Int MinimumAC_inclusive
-        String output_path
+        #String output_path
+        String output_prefix
         String cloud_checkpoint_dir
     }
 
@@ -81,7 +83,7 @@ task WriteVCFTask {
             --ancestry "~{ancestry}" \
             --chr "~{chr}" \
             --MinimumAC_inclusive "~{MinimumAC_inclusive}" \
-            --output_path "~{output_path}" \
+            --output_path "~{output_prefix}.vcf" \
             --cloud_checkpoint_dir "~{cloud_checkpoint_dir}"
     >>>
 
@@ -93,7 +95,7 @@ task WriteVCFTask {
     }
 
     output {
-        File output_vcf = "~{output_path}"
+        File output_vcf = "~{output_prefix}.vcf"
     }
 }
 
