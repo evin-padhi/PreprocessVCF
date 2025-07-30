@@ -103,9 +103,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--matrix_table", required=True)
     parser.add_argument("--samples_table", required=True)
-    #parser.add_argument("--ancestry_table", required=True)
-    #parser.add_argument("--ancestry", required=True)
-    parser.add_argument("--chr", required=True)
     parser.add_argument("--MinimumAC_inclusive", type=int, required=True)
     parser.add_argument("--output_path", required=True)
     parser.add_argument("--cloud_checkpoint_dir", required=True)
@@ -115,9 +112,6 @@ if __name__ == "__main__":
     inputs = {
         'matrix_table': args.matrix_table,
         'samples_table': args.samples_table,
-        #'ancestry_table': args.ancestry_table,
-        #'ancestry': args.ancestry,
-        'chr': args.chr,
         'MinimumAC_inclusive': args.MinimumAC_inclusive,
         'output_path': args.output_path,
         'cloud_checkpoint_dir': args.cloud_checkpoint_dir
